@@ -3,7 +3,9 @@ name: CI/CD Docker Nginx
 on:
   push:
     paths:
-      - 'index.html'  # Este pipeline se ejecutará cada vez que se actualice index.html
+      - 'index.html'
+      - 'Dockerfile'
+      - 'docker-compose.yml'  # Este pipeline se ejecutará cada vez que se actualice index.html
     branches:
       - 'main'
   pull_request:
@@ -19,7 +21,7 @@ jobs:
     steps:
       # Paso 1: Chequear el código desde GitHub
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       # Paso 2: Configurar Docker (si no lo está ya)
       - name: Set up Docker Buildx
@@ -35,23 +37,22 @@ jobs:
       # Paso 4: Construir la imagen Docker
       - name: Build Docker image
         run: |
-          docker build -t myusername/nginx:latest .
+           docker build -t ${{ secrets.DOCKER_USERNAME }}/nginx-custom:latest .
+
           
 
       # Paso 5: Subir la imagen Docker a Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
-          docker push myusername/nginx:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/nginx-custom:latest
 
   # Desplegar en el servidor (con SSH)
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            docker pull myusername/nginx:latest
-            docker stop nginx-container || true
-            docker rm nginx-container || true
-            docker run -d --name nginx-container -p 80:80 myusername/nginx:latest
+      - name: Deploy to server (Docker Compose)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            cd /path/to/your/app
+            docker-compose down
+            docker-compose up -d
+          EOF
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
