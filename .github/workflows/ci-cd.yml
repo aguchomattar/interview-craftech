@@ -5,10 +5,10 @@ on:
     branches:
       - 'main'
     paths:
-      - '.github/index.html'  # Este pipeline se ejecutará cada vez que se actualice index.html
+      - 'index.html'  # Este pipeline se ejecutará cada vez que se actualice index.html
   pull_request:
     paths:
-      - '.github/index.html'  # También se ejecutará en PRs que afecten index.html
+      - 'index.html'  # También se ejecutará en PRs que afecten index.html
 
 jobs:
   build_and_push:
