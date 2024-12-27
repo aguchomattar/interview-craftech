@@ -4,6 +4,7 @@ Utilizará CloudFront (AWS) para distribución de contenido global, asegurando b
 2. Balanceo de Carga (Load Balancer)
 Para manejar las cargas variables y asegurar alta disponibilidad (HA), necesitas un Balanceador de Carga. En AWS, esto sería Aplication Load Balancer (ALB).
 Este balanceador distribuirá el tráfico entre múltiples instancias de servidores en diferentes Zonas de Disponibilidad (AZs), lo que asegura que si una zona falla, el tráfico se redirige a otra sin que el servicio se vea afectado.
+
 3.Router (Virtual Router en VPC)
 En AWS, un router es un componente virtual dentro de tu VPC (Virtual Private Cloud) que se encarga de gestionar el enrutamiento de tráfico entre diferentes subredes dentro de la VPC y también entre tu VPC y otros servicios fuera de ella.
 
