@@ -3,10 +3,10 @@ name: CI/CD Docker Nginx
 on:
   push:
     paths:
-      - 'index.html'  # Este pipeline se ejecutará cada vez que se actualice index.html
+      - '.github/index.html'  # Este pipeline se ejecutará cada vez que se actualice index.html
   pull_request:
     paths:
-      - 'index.html'  # También se ejecutará en PRs que afecten index.html
+      - '.github/index.html'  # También se ejecutará en PRs que afecten index.html
 
 jobs:
   build_and_push:
