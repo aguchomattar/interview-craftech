@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  django:
+    build:
+      context: ./backend  
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./.env.postgres  
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+    depends_on:
+      - db
+  react:
+    build:
+      context: ./frontend  
+    ports:
+      - "3000:3000"
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

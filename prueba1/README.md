@@ -40,4 +40,4 @@ El backend está compuesto por instancias de servidor gestionadas que pueden esc
 
 Para garantizar la integridad de los datos, la arquitectura utiliza tanto bases de datos relacionales como no relacionales. La base de datos relacional se maneja a través de un servicio gestionado en Multi-AZ, asegurando alta disponibilidad. La base de datos no relacional se utiliza para almacenar grandes volúmenes de datos no estructurados y está igualmente optimizada para escalabilidad.
 
-La arquitectura también incluye el uso de microservicios externos, lo que permite que la aplicación consuma funcionalidades adicionales sin tener que integrarlas directamente. Estos servicios se conectan a través de API Gateway
+La arquitectura también incluye el uso de microservicios externos, en este caso son PAYPAL y el traductor DEEPL, lo que permite que la aplicación consuma funcionalidades adicionales sin tener que integrarlas directamente. Estos servicios se conectan a través de API Gateway

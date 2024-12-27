@@ -8,9 +8,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . ./
 
-COPY .env ./app.env
+COPY .env .
 
-RUN pip install python-dotenv
+RUN python -m pip install python-dotenv
 
 CMD ["python", "manage.py", "runserver"]
 
