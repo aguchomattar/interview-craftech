@@ -2,15 +2,15 @@ name: CI/CD Docker Nginx
 
 on:
   push:
-    branches:
-      - 'main'
     paths:
       - 'index.html'  # Este pipeline se ejecutará cada vez que se actualice index.html
-  pull_request:
     branches:
       - 'main'
+  pull_request:
     paths:
       - 'index.html'  # También se ejecutará en PRs que afecten index.html
+    branches:
+      - 'main'
 
 jobs:
   build_and_push:
