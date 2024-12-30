@@ -1,32 +1,57 @@
-version: '3.7'
+version: '3.8'
 
 services:
-  django:
+
+
+  # Servicio para el Backend
+  backend:
     build:
-      context: ./backend  
-    volumes:
-      - ./backend:/app
+      context: ./backend  # El contexto de construcción es el directorio actual
+      dockerfile: Dockerfile  # Dockerfile para el backend
+    container_name: backend
     env_file:
-      - ./.env.postgres  
-    ports:
-      - "8000:8000"
+      - ./.env.postgres
     environment:
-      - DEBUG=True
-    depends_on:
-      - db
-  react:
-    build:
-      context: ./frontend  
-    ports:
-      - "3000:3000"
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_DB: mydb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - DATABASE=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=core # Puedes añadir más variables de entorno aquí
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./backend:/app  # Monta el código fuente del backend
+    ports:
+      - 8000:8000  # Exponemos el puerto 3000 para el backend
+    depends_on:
+      - db  # Aseguramos que el backend espere que la base de datos esté disponible
+
+  # Servicio para el Frontend
+  frontend:
+    build:
+      context: ./frontend  # Asumiendo que el frontend está en la carpeta "frontend"
+      dockerfile: Dockerfile  # Dockerfile para el frontend
+    container_name: frontend
+    ports:
+      - 3000:3000  # Exponemos el puerto 3000 para el frontend 
+    command: ["npx", "serve", "build"]  # Comando para servir los archivos estáticos
+    depends_on:
+      - backend  # Aseguramos que el backend esté disponible antes de que el frontend inicie
+  
+  # Servicio para la base de datos
+  db:
+    container_name: database
+    image: postgres:12.0-alpine
+    env_file: ./.env.postgres
+    environment:
+      - SQL_DATABASE=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=core
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
 
 volumes:
-  pgdata:
+  postgres_data:
+  static:
+  media:
