@@ -37,20 +37,20 @@ jobs:
       # Paso 4: Construir la imagen Docker
       - name: Build Docker image
         run: |
-           docker build -t ${{ secrets.DOCKER_USERNAME }}/nginx-custom:latest .
+           docker build -t ${{ secrets.DOCKER_USERNAME }}/nginx-custom:${{ github.sha }} .
 
           
 
       # Paso 5: Subir la imagen Docker a Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/nginx-custom:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/nginx-custom:${{ github.sha }}
 
   # Desplegar en el servidor (con SSH)
       - name: Deploy to server (Docker Compose)
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd /path/to/your/app
+            cd /interview-craftech
             docker-compose down
             docker-compose up -d
           EOF
