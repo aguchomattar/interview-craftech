@@ -1,22 +1,22 @@
 name: CI/CD Docker Nginx
 
 on:
-  push:
+ push:
     paths:
       - 'index.html'
       - 'Dockerfile'
       - 'docker-compose.yml'  # Este pipeline se ejecutará cada vez que se actualice index.html
     branches:
-      - 'main'
-  pull_request:
+      - main
+ pull_request:
     paths:
       - 'index.html'  # También se ejecutará en PRs que afecten index.html
     branches:
       - 'main'
 
 jobs:
-  build:
-    runs-on: self-hosted
+  build-and-push:
+    runs-on: ubuntu-latest
 
     steps:
       # Paso 1: Chequear el código desde GitHub
@@ -37,7 +37,8 @@ jobs:
       # Paso 4: Construir la imagen Docker
       - name: Build Docker image
         run: |
-           docker build -t ${{ secrets.DOCKER_USERNAME }}/nginx-custom:${{ github.sha }} .
+           docker build -t ${{ secrets.DOCKER_USERNAME }}/nginx-custom:${{ github.sha }} \
+                      -t ${{ secrets.DOCKER_USERNAME }}/nginx-custom:latest .
 
           
 
@@ -45,5 +46,13 @@ jobs:
       - name: Push Docker image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/nginx-custom:${{ github.sha }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/nginx-custom:latest
 
-  
+      # Optional: Add basic testing
+      - name: Test container
+        run: |
+          docker run -d -p 8080:80 --name test-nginx ${{ secrets.DOCKER_USERNAME }}/nginx-custom:${{ github.sha }}
+          sleep 5
+          curl -s --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080
+          docker stop test-nginx
+          docker rm test-nginx
