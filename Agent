@@ -1,0 +1,92 @@
+1. IAM (Identity and Access Management)
+IAM es el servicio de AWS que te permite gestionar usuarios, roles y permisos para acceder a los recursos de AWS de forma segura. Es fundamental para controlar qué servicios pueden interactuar entre sí, y también qué usuarios o aplicaciones tienen permisos para realizar acciones específicas dentro de tu infraestructura.
+
+¿Cómo agregar IAM a tu diagrama?
+IAM Roles y Políticas: Agregarás un IAM Role que se asignará a los diferentes servicios que necesitan permisos para interactuar con otros recursos. Estos roles pueden estar vinculados a tus instancias EC2, Lambda Functions, API Gateway, RDS, S3, entre otros.
+
+Función:
+
+EC2 Instances (ASG): Los roles de IAM asignados a las instancias EC2 pueden permitirles acceder a otros recursos como DynamoDB, S3, o incluso ejecutar comandos en otras instancias EC2 o servicios como Lambda o RDS.
+
+RDS y DynamoDB: Deberás configurar políticas IAM para permitir que el backend (instancias EC2) pueda leer/escribir datos en la base de datos de forma segura.
+
+API Gateway: Deberías configurar permisos para que el API Gateway pueda interactuar con las funciones Lambda o acceder a otros servicios como SQS, si estás integrando microservicios.
+
+Lambda: Las funciones Lambda también necesitarán permisos específicos para interactuar con otros servicios (por ejemplo, leer datos de DynamoDB, escribir logs en CloudWatch, o invocar otros microservicios).
+
+Cómo representarlo visualmente:
+En el diagrama, IAM Roles se muestran como un bloque con una flecha que conecta EC2, RDS, DynamoDB, Lambda, y cualquier otro servicio que necesite permisos.
+Puedes etiquetar las flechas para indicar qué permisos específicos se están otorgando (por ejemplo, acceso a S3, DynamoDB, etc.).
+2. Security Groups
+Los Security Groups en AWS son como firewalls virtuales que controlan el tráfico hacia y desde tus instancias EC2, ELB, y otros recursos. Los Security Groups definen qué tráfico está permitido o bloqueado basado en direcciones IP y puertos.
+
+¿Cómo agregar Security Groups a tu diagrama?
+Security Group para EC2: Debes crear un Security Group para las instancias EC2 que gestionarán el backend. Este Security Group debe permitir el tráfico entrante (ingress) desde el ELB en los puertos necesarios (como el puerto 80 para HTTP o el puerto 443 para HTTPS).
+
+Security Group para ELB: El Elastic Load Balancer (ELB) también tendrá su propio Security Group. Este Security Group debe permitir tráfico entrante desde cualquier origen en el puerto 80 (HTTP) o 443 (HTTPS), ya que el ELB distribuirá solicitudes HTTP/S.
+
+Security Group para RDS: Para Amazon RDS, su Security Group debe estar configurado para permitir conexiones desde las instancias EC2 que se encuentran en el mismo VPC. Por lo general, las bases de datos solo deben permitir el acceso a instancias específicas (es decir, no abrir acceso público a la base de datos).
+
+Security Group para Lambda: Lambda en AWS no usa Security Groups de manera directa, ya que es un servicio sin servidor, pero si tu función Lambda necesita acceder a recursos dentro de una VPC (como RDS o DynamoDB), entonces se le asignará un Security Group que permita el acceso a estos servicios.
+
+Cómo representarlo visualmente:
+Cada servicio o grupo de servicios (como EC2, ELB, RDS) debe estar conectado a su correspondiente Security Group mediante una flecha.
+Los Security Groups deben estar etiquetados con los puertos/acciones que permiten, como HTTP (80), HTTPS (443), MySQL (3306), etc.
+Ejemplo de diagramado:
+sql
+Copy code
+      +-----------------------+                             +-------------------+
+      | EC2 Instances (ASG)    | <------------------------> | Security Group EC2 |
+      +-----------------------+                             +-------------------+
+            |
+            v
+      +-----------------------+                             +----------------------+
+      | Elastic Load Balancer  | <------------------------> | Security Group ELB   |
+      +-----------------------+                             +----------------------+
+            |
+            v
+      +-------------------+                                   +-----------------------+
+      |    RDS (Relacional)| <----------------------------->   | Security Group RDS     |
+      +-------------------+                                   +-----------------------+
+            |
+            v
+      +-------------------+                                   +---------------------------+
+      |    Lambda (if any)| <----------------------------->   | Security Group Lambda      |
+      +-------------------+                                   +---------------------------+
+3. Route Tables
+Las Route Tables definen las rutas que el tráfico sigue en una red dentro de tu VPC (Virtual Private Cloud). Si estás utilizando varias subredes dentro de una VPC, necesitarás definir cómo se enruta el tráfico entre ellas y hacia/desde el mundo exterior (internet o otros servicios).
+
+¿Cómo agregar Route Tables a tu diagrama?
+VPC y Subredes (Subnets): Dentro de una VPC, puedes tener varias subredes públicas (para servicios como ELB, servidores web) y subredes privadas (para EC2, RDS). Las subredes públicas deben tener acceso a una Internet Gateway, mientras que las subredes privadas no deberían tener acceso directo a internet, pero pueden acceder a través de una NAT Gateway si necesitan acceder a internet (por ejemplo, para descargar actualizaciones de seguridad).
+
+Route Tables para Subredes:
+
+Subredes públicas: Tendrán una ruta hacia la Internet Gateway (IGW) que les permitirá acceder a la internet.
+Subredes privadas: Tendrán una ruta hacia la NAT Gateway o NAT Instance que les permitirá acceder a la internet sin exponer las instancias directamente.
+Cómo representarlo visualmente:
+En tu diagrama, puedes agregar un bloque de Route Tables conectado a las subredes de tu VPC.
+Indica las rutas que permiten la comunicación entre subredes, hacia la Internet Gateway (para subredes públicas) o hacia la NAT Gateway (para subredes privadas).
+Además, puedes marcar las conexiones entre los Security Groups y las instancias en las subredes, ya que las reglas de tráfico de los Security Groups también dependen de la conectividad de red definida por las tablas de rutas.
+Ejemplo de diagrama de tablas de rutas:
+sql
+Copy code
+      +----------------+        +--------------------------+
+      |  VPC           | ------>| Route Table (Public)      |
+      |                |        | - Default route (IGW)     |
+      +----------------+        +--------------------------+
+            |                               |
+   +-------------------+           +-------------------+
+   | Public Subnet 1   |           | Private Subnet 1  |
+   | (EC2, ELB)        |           | (EC2, RDS)        |
+   +-------------------+           +-------------------+
+            |                               |
+    +-------------------+          +----------------------+
+    | Internet Gateway   | <------> | NAT Gateway          |
+    | (IGW)              |          | (for Private Subnet) |
+    +-------------------+          +----------------------+
+Resumen: Agregar Permisos IAM, Security Groups y Route Tables
+IAM Roles y Políticas: Asigna permisos de IAM a servicios como EC2, RDS, Lambda, etc., para controlar qué recursos pueden acceder y qué operaciones pueden realizar. Representa estos roles en el diagrama con flechas entre los servicios y sus permisos.
+
+Security Groups: Define reglas de firewall para cada servicio. Representa los Security Groups conectados a EC2, ELB, RDS, Lambda, y cualquier otro servicio que se comunique entre sí.
+
+Route Tables: Configura las tablas de rutas para gestionar cómo el tráfico fluye dentro de la VPC, permitiendo la comunicación entre subredes públicas y privadas, y dirigiendo el tráfico hacia la Internet Gateway o NAT Gateway.
